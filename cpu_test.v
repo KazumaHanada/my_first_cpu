@@ -1,4 +1,4 @@
-//CPUの創り方p206
+//CPUの創り方p211
 //CPUの試用環境を便宜的に作成
 //Analysis & Elaborationのみ行った
 module cpu_test;
