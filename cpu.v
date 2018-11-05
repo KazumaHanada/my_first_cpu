@@ -21,7 +21,7 @@ module cpu(
 	input load2, 		    //便宜的に入力線にする
 	
 	//load3を回路の内部に
-	
+  
 	//imへの入力はプログラムメモリからの入力線 下位4bit(instr[3:0])に変更
 
 	output [3:0] tmp_out //便宜的に出力線にする
@@ -32,19 +32,19 @@ module cpu(
 	reg [3:0] a_reg;
 	reg [3:0] b_reg;
 	reg [3:0] c_reg;
-	reg [3:0] pc_reg;			//DレジスタをPCにする
+	reg [3:0] pc_reg;			    //DレジスタをPCにする
 	
 	wire [3:0] selector_out;
-	wire [3:0] im; 			    //読み出した命令の下位4bitをALUに送る配線
+	wire [3:0] im; 			      //読み出した命令の下位4bitをALUに送る配線
+  
+  wire [3:0] alu_out;  	    //ALUの出力線
 	
-	wire [3:0] alu_out;  	    //ALUの出力線
+	reg cf_reg;					      //Carry Outの値を保存するCarry Flag
+	wire c;						        //Carry Out用の配線
 	
-	reg cf_reg;					//Carry Outの値を保存するCarry Flag
-	wire c;						//Carry Out用の配線
-	
-	wire load3;                 //load3を回路の内部に
-	
-	
+	wire load3;               //load3を回路の内部に
+  
+  
 	always @(posedge clk) begin
 		
 		if(n_reset == 1'b0 ) begin
@@ -72,13 +72,13 @@ module cpu(
 	
 	//PCの値をプログラムメモリに出力
 	assign address = pc_reg;
-	
-	
+  
+  
 	//cf_reg = 1 ⇒ load3 = 0 となり なにもしない
 	//cf_reg = 0 ⇒ load3 = 1 となり imをPCへロード、条件ジャンプする
 	assign load3	= cf_reg ? 0 : 1;
 	
-	
+  
 	//Dレジスタの出力線を切断し、0000に固定
 	data_selector ds (a_reg, b_reg, c_reg, 4'b0000, select_a, select_b, selector_out);
 	

@@ -5,6 +5,8 @@ module cpu_test;
 	
 	wire clk;
 	wire n_reset;
+	wire instr;
+	wire address;
 	wire select_a;
 	wire select_b;
 	wire load0;
