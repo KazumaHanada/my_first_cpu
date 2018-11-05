@@ -1,10 +1,10 @@
-//CPUの創り方p189
-//4bitのA,B,C,Dレジスタとデータセレクタ（2つで1つ）からなる回路
+//CPUの創り方p201
+//ALUの追加 [ADD A,im] [ADD B,im]を実行できる回路にする
 module cpu(
 	
-	input clk, 
+	input clk,
 	
-	input n_reset, 
+	input n_reset,
 	
 	input select_a, 	 //便宜的に入力線にする
 	
@@ -18,6 +18,8 @@ module cpu(
 	
 	input load3, 		 //便宜的に入力線にする
 	
+	input [3:0] im,      //ALUにつなぐ即値を追加
+	
 	output [3:0] tmp_out //便宜的に出力線にする
 	
 	);
@@ -28,7 +30,8 @@ module cpu(
 	reg [3:0] c_reg;
 	reg [3:0] d_reg;
 	
-	wire [3:0] select_out;
+	wire [3:0] selector_out;
+	wire [3:0] alu_out;  //ALUの出力線
 	
 	
 	always @(posedge clk) begin
@@ -40,21 +43,25 @@ module cpu(
 			d_reg <= 0;
 		end
 		else begin
-			a_reg <= load0 ? select_out : a_reg;
-			b_reg <= load1 ? select_out : b_reg;
-			c_reg <= load2 ? select_out : c_reg;
-			d_reg <= load3 ? select_out : d_reg;
+			//ALUの出力をレジスタにロードできるようにする
+			a_reg <= load0 ? alu_out : a_reg;
+			b_reg <= load1 ? alu_out : b_reg;
+			c_reg <= load2 ? alu_out : c_reg;
+			d_reg <= load3 ? alu_out : d_reg;
 		end
 	
 	end
 	
 	
-	data_selector ds (a_reg, b_reg, c_reg, d_reg, 
-								select_a, select_b, select_out);
+	data_selector ds (a_reg, b_reg, c_reg, d_reg, select_a, select_b, select_out);
+	
+	
+	//ALU
+	assign alu_out = selector_out + im;
 	
 	
 	//便宜的に出力線につなぐ
-	assign tmp_out = select_out;
+	assign tmp_out = selector_out;
 
 
 endmodule
