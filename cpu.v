@@ -1,5 +1,5 @@
-//CPUの創り方p201
-//ALUの追加 [ADD A,im] [ADD B,im]を実行できる回路にする
+//CPUの創り方p206
+//Dレジスタの出力線を切断、即値0000をデータセレクタの入力線に接続し、[MOA A,B] [MOV A,Im]を実行できる回路にする
 module cpu(
 	
 	input clk,
@@ -53,7 +53,8 @@ module cpu(
 	end
 	
 	
-	data_selector ds (a_reg, b_reg, c_reg, d_reg, select_a, select_b, select_out);
+	//Dレジスタの出力線を切断し、0000に固定
+	data_selector ds (a_reg, b_reg, c_reg, d_reg, select_a, 4'b0000, select_out);
 	
 	
 	//ALU
