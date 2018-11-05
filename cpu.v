@@ -1,5 +1,5 @@
-//CPUの創り方p206
-//Dレジスタの出力線を切断、即値0000をデータセレクタの入力線に接続し、[MOA A,B] [MOV A,Im]を実行できる回路にする
+//CPUの創り方p211
+//Carry Flagを追加
 module cpu(
 	
 	input clk,
@@ -33,6 +33,9 @@ module cpu(
 	wire [3:0] selector_out;
 	wire [3:0] alu_out;  //ALUの出力線
 	
+	reg cf_reg;				//Carry Outの値を保存するCarry Flag
+	wire c;					//Carry Out用の配線
+	
 	
 	always @(posedge clk) begin
 		
@@ -41,6 +44,8 @@ module cpu(
 			b_reg <= 0;
 			c_reg <= 0;
 			d_reg <= 0;
+			//n_resetの立下りでキャリーの値をクリア
+			cf_reg <= 0;
 		end
 		else begin
 			//ALUの出力をレジスタにロードできるようにする
@@ -48,6 +53,8 @@ module cpu(
 			b_reg <= load1 ? alu_out : b_reg;
 			c_reg <= load2 ? alu_out : c_reg;
 			d_reg <= load3 ? alu_out : d_reg;
+			//クロックの立ち上がりでキャリーの値を保存
+			cf_reg <= c;
 		end
 	
 	end
@@ -57,8 +64,8 @@ module cpu(
 	data_selector ds (a_reg, b_reg, c_reg, d_reg, select_a, 4'b0000, select_out);
 	
 	
-	//ALU
-	assign alu_out = selector_out + im;
+	//ALU 連接演算でCarry Outした値を送る
+	assign {c, alu_out} = selector_out + im;
 	
 	
 	//便宜的に出力線につなぐ
