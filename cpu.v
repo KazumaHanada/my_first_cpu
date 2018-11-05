@@ -1,4 +1,4 @@
-//CPUの創り方p222
+//CPUの創り方p272
 //I/Oポートの追加
 module cpu(
 	
@@ -12,41 +12,49 @@ module cpu(
 	
 	input [3:0] in, 		//入力ポート
 	
-	output [3:0] out, 		//出力ポート
+	output [3:0] out 		//出力ポート
 	
-	input select_a, 	    //便宜的に入力線にする
+	//input select_a, 回路の内部へ
 	
-	input select_b, 	    //便宜的に入力線にする
+	//input select_b, 回路の内部へ
 	
-	input load0, 		    //便宜的に入力線にする
+	//input load0,    回路の内部へ
 	
-	input load1, 		    //便宜的に入力線にする
+	//input load1,    回路の内部へ
 	
-	input load2, 		    //便宜的に入力線にする
+	//input load2,    回路の内部へ
 	
-	//load3を回路の内部に
+	//load3を回路の内部へ
 	
 	//imへの入力はプログラムメモリからの入力線 下位4bit(instr[3:0])に変更
 	
-	output [3:0] tmp_out    //便宜的に出力線にする
+	//output [3:0] tmp_out 削除
 	
 	);
 	
 	
+	wire load0;					//回路の内部へ
+	wire load1;					//回路の内部へ
+	wire load2;					//回路の内部へ
+	wire load3;					//回路の内部へ
+	
 	reg [3:0] a_reg;
 	reg [3:0] b_reg;
-	reg [3:0] out_reg;			 //Cレジスタの出力を出力ポートにする
-	reg [3:0] pc_reg;			 //DレジスタをPCにする
+	reg [3:0] out_reg;		 	//Cレジスタの出力を出力ポートにする
+	reg [3:0] pc_reg;			//DレジスタをPCにする
 	
+	wire select_a;				//回路の内部へ
+	wire select_b;				//回路の内部へ
 	wire [3:0] selector_out;
-	wire [3:0] im; 			     //読み出した命令の下位4bitをALUに送る配線
 	
+	wire [3:0] op;				 //プログラムメモリから読み取った上位4bitを命令デコーダに送る配線
+	wire [3:0] im; 			     //読み出した命令の下位4bitをALUに送る配線
 	wire [3:0] alu_out;  	     //ALUの出力線
 	
 	reg cf_reg;					 //Carry Outの値を保存するCarry Flag
 	wire c;						 //Carry Out用の配線
 	
-	wire load3;                  //load3を回路の内部に
+	
   
   
 	always @(posedge clk) begin
@@ -82,13 +90,8 @@ module cpu(
 	
 	//PCの値をプログラムメモリに出力
 	assign address = pc_reg;
-  
-  
-	//cf_reg = 1 ⇒ load3 = 0 となり なにもしない
-	//cf_reg = 0 ⇒ load3 = 1 となり imをPCへロード、条件ジャンプする
-	assign load3 = cf_reg ? 0 : 1;
 	
-  
+	
 	//Cレジスタの出力のかわりに、入力ポートをデータセレクタにつなげる
 	data_selector ds (a_reg, b_reg, in, 4'b0000, select_a, select_b, selector_out);
 	
@@ -97,12 +100,21 @@ module cpu(
 	assign {c, alu_out} = selector_out + im;
 	
 	
-	//読み出した命令の下位4bitをimに送る
-	assign im = instr[3:0]; 
+	//命令をオペレーションコードとイメディエイトデータへ分割
+	assign op = instr[7:4]; //オペレーションコード
+	assign im = instr[3:0]; //イメディエイトデータ
 	
 	
-	//便宜的に出力線につなぐ
-	assign tmp_out = selector_out;
-
+	// データセレクタ制御フラグ
+	assign select_a = op[0] | op[3];
+	assign select_b = op[1];
+	
+	
+	// ロードレジスタ制御フラグ
+	assign load0 = !(op[2] | op[3]); 				  // Aレジスタへロード
+	assign load1 = !(!op[2] | op[3]); 				  // Bレジスタへロード
+	assign load2 = !op[2] & op[3]; 					  // 出力ポートへロード
+	assign load3 = (!cf_reg | op[0]) & op[2] & op[3]; // PCへロード
+	
 
 endmodule
